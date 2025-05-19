@@ -235,7 +235,7 @@ def load_data():
     ]
     
     try:
-        data = pd.read_excel("new.xlsx")
+        data = pd.read_excel("new_updated_data.xlsx")
         if len(data['Predicted_Career_Field'].unique()) < 20:
             data['Predicted_Career_Field'] = np.random.choice(career_options, size=len(data))
     except FileNotFoundError:

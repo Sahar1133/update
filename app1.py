@@ -215,7 +215,7 @@ def load_data():
     
     try:
         # Try to load real dataset
-        data = pd.read_excel("new_updated_data(2).xlsx")
+        data = pd.read_excel("new_updated_data.xlsx")
         # If career field data is sparse, generate random career assignments
         if len(data['Predicted_Career_Field'].unique()) < 20:
             data['Predicted_Career_Field'] = np.random.choice(career_options, size=len(data))

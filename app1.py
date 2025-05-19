@@ -13,13 +13,11 @@ import base64
 
 # ====================== BACKGROUND IMAGE ======================
 def add_bg_from_local(image_file):
-    with open(image_file, "rb") as image_file:
-        encoded_string = base64.b64encode(image_file.read())
     st.markdown(
         f"""
         <style>
         .stApp {{
-            background-image: url(data:image/png;base64,{encoded_string.decode()});
+            background-image: url("https://images.unsplash.com/photo-1451187580459-43490279c0fa?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80");
             background-size: cover;
             background-attachment: fixed;
             background-position: center;
@@ -332,10 +330,29 @@ def get_randomized_questions():
     random.shuffle(selected)
     return selected
 
+direct_input_features = {
+    "GPA": {
+        "question": "What is your approximate GPA (0.0-4.0)?",
+        "type": "number", 
+        "min": 0.0, 
+        "max": 4.0, 
+        "step": 0.1, 
+        "default": 3.0
+    },
+    "Years_of_Experience": {
+        "question": "Years of professional experience (if any):",
+        "type": "number", 
+        "min": 0, 
+        "max": 50, 
+        "step": 1, 
+        "default": 0
+    }
+}
+
 # ====================== MAIN APP ======================
 def main():
     # Set background and styling
-    add_bg_from_local("background.jpg")  # You'll need to provide this image
+    add_bg_from_local("background.jpg")  # Using online image instead
     apply_custom_css()
     
     # Initialize session state
@@ -361,7 +378,7 @@ def main():
 
     # Sidebar with animated profile card
     with st.sidebar:
-        st.markdown("""
+        st.markdown(f"""
         <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 16px; 
                     border: 1px solid rgba(255,255,255,0.2); margin-bottom: 2rem;">
             <h3 style="color: white; text-align: center;">🔍 About This Tool</h3>
@@ -370,18 +387,18 @@ def main():
             to match you with suitable career options from our database of {len(data)} career paths.
             </p>
         </div>
-        """.format(len(data)=len(data)), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
         
-        st.markdown("""
+        st.markdown(f"""
         <div style="background: rgba(255,255,255,0.1); padding: 1.5rem; border-radius: 16px; 
                     border: 1px solid rgba(255,255,255,0.2);">
             <h3 style="color: white; text-align: center;">📊 Model Accuracy</h3>
             <div style="background: rgba(0,0,0,0.2); border-radius: 12px; padding: 1rem; text-align: center;">
-                <h1 style="color: #4fd1c5; margin: 0;">{:.1f}%</h1>
+                <h1 style="color: #4fd1c5; margin: 0;">{accuracy*100:.1f}%</h1>
                 <p style="color: rgba(255,255,255,0.7); margin: 0;">Prediction Accuracy</p>
             </div>
         </div>
-        """.format(accuracy*100), unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
     # Create tabs
     tab1, tab2 = st.tabs(["✨ Take Assessment", "📊 Career Insights"])
@@ -534,6 +551,9 @@ def main():
                             
                             st.write("\nThis career path typically requires these characteristics, which match well with your profile.")
 
+                    except Exception as e:
+                        st.error(f"An error occurred: {str(e)}")
+
     with tab2:
         st.markdown("""
         <div style="background: rgba(255,255,255,0.8); border-radius: 16px; padding: 1.5rem; 
@@ -571,7 +591,7 @@ def main():
             
             if not career_data.empty:
                 # Stats cards
-                st.markdown("""
+                st.markdown(f"""
                 <div style="background: rgba(255,255,255,0.9); border-radius: 16px; padding: 1.5rem; 
                             box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 1.5rem;">
                     <h3 style="color: #2d3748; margin-top: 0;">{selected_career} Profile</h3>
@@ -579,26 +599,22 @@ def main():
                         <div style="background: rgba(102, 187, 106, 0.1); border-radius: 12px; padding: 1rem; 
                                     border: 1px solid rgba(102, 187, 106, 0.3);">
                             <p style="color: #4a5568; font-size: 0.9rem; margin: 0 0 0.5rem 0;">Average GPA</p>
-                            <h3 style="color: #2d3748; margin: 0;">{gpa:.1f}</h3>
+                            <h3 style="color: #2d3748; margin: 0;">{career_data['GPA'].mean():.1f if 'GPA' in career_data.columns and not career_data['GPA'].isnull().all() else 'N/A'}</h3>
                         </div>
                         <div style="background: rgba(102, 126, 234, 0.1); border-radius: 12px; padding: 1rem; 
                                     border: 1px solid rgba(102, 126, 234, 0.3);">
                             <p style="color: #4a5568; font-size: 0.9rem; margin: 0 0 0.5rem 0;">Avg. Experience</p>
-                            <h3 style="color: #2d3748; margin: 0;">{exp:.1f} years</h3>
+                            <h3 style="color: #2d3748; margin: 0;">{career_data['Years_of_Experience'].mean():.1f if 'Years_of_Experience' in career_data.columns else 'N/A'} years</h3>
                         </div>
                         <div style="background: rgba(237, 137, 54, 0.1); border-radius: 12px; padding: 1rem; 
                                     border: 1px solid rgba(237, 137, 54, 0.3);">
                             <p style="color: #4a5568; font-size: 0.9rem; margin: 0 0 0.5rem 0;">Common Interest</p>
-                            <h3 style="color: #2d3748; margin: 0;">{interest}</h3>
+                            <h3 style="color: #2d3748; margin: 0;">{career_data['Interest'].mode()[0] if 'Interest' in career_data.columns else 'N/A'}</h3>
                         </div>
                     </div>
                 </div>
-                """.format(
-                    selected_career=selected_career,
-                    gpa=career_data['GPA'].mean() if 'GPA' in career_data.columns and not career_data['GPA'].isnull().all() else "N/A",
-                    exp=career_data['Years_of_Experience'].mean() if 'Years_of_Experience' in career_data.columns else "N/A",
-                    interest=career_data['Interest'].mode()[0] if 'Interest' in career_data.columns else "N/A"
-                ), unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
+    
